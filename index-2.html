@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lembar Kerja PM Alat Medis</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#eef2f5;color:#17202a}
+.app{max-width:1100px;margin:auto;background:#fff;min-height:100vh}
+.toolbar{position:sticky;top:0;z-index:10;background:#174f78;padding:9px;display:flex;gap:7px;flex-wrap:wrap}
+.toolbar button{border:0;border-radius:7px;padding:10px 14px;font-weight:700;cursor:pointer;background:#fff;color:#174f78}
+.toolbar button.primary{background:#198754;color:#fff}
+.sheet{padding:20px}
+.title{text-align:center;border-bottom:2px solid #222;padding-bottom:10px;margin-bottom:18px}
+.title h1{font-size:22px;margin:0 0 4px}.title p{margin:0;font-size:13px}
+.info{width:100%;border-collapse:collapse;margin-bottom:15px}
+.info td{border:1px solid #555;padding:6px 8px}
+.info td:first-child{width:34%;font-weight:700;background:#f3f3f3}
+input,select{width:100%;font:inherit;padding:6px;border:1px solid #aaa;border-radius:5px;background:#fff}
+.stats{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0 12px}
+.stat{border:1px solid #ddd;border-radius:7px;padding:7px 10px;font-size:12px;background:#fafafa}
+.note{font-size:12px;color:#5d6870;margin-bottom:10px}
+.tablewrap{overflow-x:auto}
+.pm{width:100%;border-collapse:collapse;table-layout:fixed}
+.pm th,.pm td{border:1px solid #555;padding:5px;font-size:12px;word-break:break-word}
+.pm th{background:#eee;text-align:center}
+.pm th:nth-child(1),.pm td:nth-child(1){width:16%}
+.pm th:nth-child(2),.pm td:nth-child(2){width:40%}
+.pm th:nth-child(3),.pm td:nth-child(3){width:22%}
+.pm th:nth-child(4),.pm td:nth-child(4){width:22%}
+.pm input,.pm select{border:0;padding:3px;background:transparent}
+.signature{display:flex;justify-content:flex-end;margin-top:25px}
+.sigbox{text-align:center;width:300px}.sigline{border-bottom:1px solid #222;margin:55px 30px 5px}
+.modal{display:none;position:fixed;inset:0;background:#0008;z-index:100;align-items:center;justify-content:center;padding:15px}
+.modal.show{display:flex}.card{background:#fff;border-radius:12px;padding:18px;text-align:center;width:min(390px,94vw)}
+.card h3{margin:0 0 12px;color:#174f78}.card img{width:270px;height:270px;max-width:75vw}
+.card button{border:0;border-radius:7px;padding:9px 14px;margin:8px 4px;font-weight:700;cursor:pointer}
+.close{background:#eee}.download{background:#198754;color:#fff}
+@media(max-width:700px){
+ .sheet{padding:10px}.title h1{font-size:17px}.title p{font-size:11px}
+ .toolbar{position:static}.toolbar button{flex:1 1 45%;font-size:11px;padding:9px 6px}
+ .info td{font-size:12px;padding:5px}.info td:first-child{width:34%}
+ .pm th,.pm td{font-size:10px;padding:4px}.pm input,.pm select{font-size:10px}
+ .signature{margin-top:18px}.sigbox{width:240px;font-size:11px}
+}
+@media print{
+ body{background:#fff}.toolbar,.no-print{display:none!important}.app{max-width:none}
+ .sheet{padding:0}.info input,.info select,.pm input,.pm select{border:0}
+ .pm th,.pm td{font-size:8pt;padding:1.5mm}
+ @page{size:215mm 330mm portrait;margin:10mm}
+}
+
+.scan-view{display:none;padding:16px}.scan-view.active{display:block}.scan-card{max-width:900px;margin:auto;border:1px solid #ccd5dc;border-radius:12px;padding:18px;background:#fff}.scan-card h2{color:#174f78;text-align:center;margin:0 0 16px}.scan-info{width:100%;border-collapse:collapse;margin-bottom:18px}.scan-info td{border:1px solid #555;padding:7px}.scan-info td:first-child{width:34%;font-weight:700;background:#f3f3f3}.scan-pm{width:100%;border-collapse:collapse}.scan-pm th,.scan-pm td{border:1px solid #555;padding:6px;font-size:12px}.scan-pm th{background:#eee}.scan-actions{text-align:center;margin:15px 0}.scan-actions button{border:0;border-radius:7px;padding:10px 16px;margin:4px;font-weight:700;cursor:pointer}.pdfbtn{background:#198754;color:#fff}.backbtn{background:#174f78;color:#fff}@media print{.scan-view.active{display:block!important}.app{display:none!important}.scan-actions{display:none!important}@page{size:215mm 330mm portrait;margin:10mm}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="toolbar no-print">
+ <button onclick="addRow()">+ Baris PM</button>
+ <button onclick="todayRow()">Tanggal Hari Ini</button>
+ <button class="primary" onclick="showQR()">QR OTOMATIS</button>
+ <button onclick="window.print()">Cetak / PDF F4</button>
+ <button onclick="saveData()">Simpan</button>
+</div>
+
+<div class="sheet">
+<div class="title">
+<h1>LEMBAR KERJA PREVENTIVE MAINTENANCE (PM)</h1>
+<p>ALAT MEDIS</p>
+</div>
+
+<table class="info">
+<tr><td>Nama Alat</td><td><input id="nama" value="EKG"></td></tr>
+<tr><td>Merk</td><td><input id="merk" value="ZONCARE"></td></tr>
+<tr><td>Type</td><td><input id="type" value="ZQ 1212"></td></tr>
+<tr><td>No. Seri</td><td><input id="seri" value="L011180104200N0012"></td></tr>
+<tr><td>Masa Berlaku Kalibrasi</td><td><input id="kalibrasi" type="date" value="2027-11-07"></td></tr>
+<tr><td>Lokasi Alat</td><td><input id="lokasi" value="IMED DEWASA CVCBC"></td></tr>
+</table>
+
+<div class="stats">
+<div class="stat">Total PM: <b id="total">0</b></div>
+<div class="stat">Baik: <b id="baik">0</b></div>
+<div class="stat">Dalam Perbaikan: <b id="perbaikan">0</b></div>
+<div class="stat">Rusak Berat: <b id="rusak">0</b></div>
+</div>
+
+<div class="note">Setiap baris dapat diedit. <b>Kegiatan PM bersifat opsional</b> dan boleh dikosongkan.</div>
+
+<div class="tablewrap">
+<table class="pm" id="pmTable">
+<thead><tr><th>Hari/Tanggal</th><th>Kegiatan PM (Opsional)</th><th>Hasil / Kondisi</th><th>Elektromedis</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+
+<div class="signature">
+<div class="sigbox">
+<div>Teknisi Elektromedis</div>
+<div class="sigline"></div>
+<b>FANNY JOSEPH</b>
+</div>
+</div>
+</div>
+</div>
+
+<div class="modal" id="qrModal">
+<div class="card">
+<h3>QR OTOMATIS - DATA PM</h3>
+<div id="qrBox"></div>
+<div>
+<button class="download" onclick="downloadQR()">Download QR</button>
+<button class="close" onclick="closeQR()">Tutup</button>
+</div>
+<div style="font-size:11px;color:#68737a">QR diperbarui otomatis mengikuti data alat dan seluruh tabel PM.</div>
+</div>
+</div>
+
+<div class="scan-view" id="scanView">
+<div class="scan-card">
+<h2>DATA ALAT & RIWAYAT PREVENTIVE MAINTENANCE</h2>
+<div id="scanContent"></div>
+<div class="scan-actions no-print"><button class="pdfbtn" onclick="printScanPDF()">Tampilkan PDF</button><button class="backbtn" onclick="backToForm()">Kembali ke Lembar PM</button></div>
+</div></div>
+
+<script>
+const sample=[
+["2026-06-01","Pengecekan fungsi alat","Baik","FANNY JOSEPH"],
+["2026-01-12","Pengecekan fungsi alat","Baik","FANNY JOSEPH"],
+["2026-01-20","Pengecekan fungsi alat","Baik","FANNY JOSEPH"],
+["2026-02-05","Pengecekan fungsi alat","Baik","FANNY JOSEPH"],
+["2026-02-07","Pengecekan fungsi alat","Baik","FANNY JOSEPH"],
+["2026-03-09","Pengecekan fungsi alat","Baik","FANNY JOSEPH"],
+["2026-03-13","Pengecekan fungsi alat","Baik","FANNY JOSEPH"],
+["2026-03-25","Pengecekan fungsi alat","Baik","FANNY JOSEPH"],
+["2026-04-07","Pengecekan fungsi alat","Baik","FANNY JOSEPH"],
+["2026-04-24","Pengecekan fungsi alat","Baik","FANNY JOSEPH"],
+["2026-05-02","Pengecekan fungsi alat","Baik","FANNY JOSEPH"],
+["2026-05-08","Pengecekan fungsi alat","Baik","FANNY JOSEPH"],
+["2026-06-15","Pengecekan fungsi alat","Baik","FANNY JOSEPH"],
+["2026-06-19","Pengecekan fungsi alat","Baik","FANNY JOSEPH"],
+["2026-07-18","Pengecekan fungsi alat","Baik","FANNY JOSEPH"],
+["2026-07-25","Tutup print rusak","Baik","FANNY JOSEPH"],
+["2026-07-20","Tutup print rusak","Baik","FANNY JOSEPH"],
+["2026-08-17","Tutup print rusak","Baik","FANNY JOSEPH"],
+["2026-08-18","Tutup print rusak","Baik","FANNY JOSEPH"],
+["2026-08-22","Tutup print rusak","Baik","FANNY JOSEPH"]
+];
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
+function rowHTML(r=["","","Baik","FANNY JOSEPH"]){
+return `<tr>
+<td><input type="date" value="${esc(r[0])}"></td>
+<td><input value="${esc(r[1])}" placeholder="Opsional"></td>
+<td><select><option ${r[2]=="Baik"?"selected":""}>Baik</option><option ${r[2]=="Dalam Perbaikan"?"selected":""}>Dalam Perbaikan</option><option ${r[2]=="Rusak Berat"?"selected":""}>Rusak Berat</option></select></td>
+<td><input value="${esc(r[3]||"FANNY JOSEPH")}"></td>
+</tr>`;
+}
+function render(rows){document.querySelector("#pmTable tbody").innerHTML=rows.map(rowHTML).join("");updateStats();}
+function getRows(){return [...document.querySelectorAll("#pmTable tbody tr")].map(tr=>[
+tr.children[0].querySelector("input").value,
+tr.children[1].querySelector("input").value,
+tr.children[2].querySelector("select").value,
+tr.children[3].querySelector("input").value
+]);}
+function addRow(){document.querySelector("#pmTable tbody").insertAdjacentHTML("beforeend",rowHTML());updateStats();}
+function todayRow(){addRow();let r=document.querySelectorAll("#pmTable tbody tr");r[r.length-1].children[0].querySelector("input").value=new Date().toISOString().slice(0,10);}
+function updateStats(){let c={"Baik":0,"Dalam Perbaikan":0,"Rusak Berat":0},rows=getRows();rows.forEach(r=>c[r[2]]++);total.textContent=rows.length;baik.textContent=c["Baik"];perbaikan.textContent=c["Dalam Perbaikan"];rusak.textContent=c["Rusak Berat"];}
+function data(){return {nama:nama.value,merk:merk.value,type:type.value,seri:seri.value,kalibrasi:kalibrasi.value,lokasi:lokasi.value,teknisi:"FANNY JOSEPH",pm:getRows()};}
+function encodeQR(obj){
+let bytes=new TextEncoder().encode(JSON.stringify(obj));
+let bin=""; bytes.forEach(b=>bin+=String.fromCharCode(b));
+return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");
+}
+function decodeQR(str){
+str=str.replace(/-/g,"+").replace(/_/g,"/"); while(str.length%4)str+="=";
+let bin=atob(str), bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
+return JSON.parse(new TextDecoder().decode(bytes));
+}
+function qrTarget(){
+let base=location.href.split('#')[0];
+return base+'#pm='+encodeQR(data());
+}
+function qrURL(){
+let payload=encodeURIComponent(qrTarget());
+return "https://api.qrserver.com/v1/create-qr-code/?size=600x600&data="+payload;
+}
+function showQR(){
+document.getElementById("qrBox").innerHTML=`<img id="qrImg" src="${qrURL()}" alt="QR PM"><div style="font-size:10px;word-break:break-all;margin-top:8px;color:#68737a">Scan akan membuka halaman data alat pada alamat hosting aplikasi.</div>`;
+document.getElementById("qrModal").classList.add("show");
+}
+function closeQR(){document.getElementById("qrModal").classList.remove("show");}
+function downloadQR(){
+let img=document.getElementById("qrImg");
+if(!img){showQR();setTimeout(downloadQR,700);return;}
+let a=document.createElement("a");a.href=img.src;a.download="QR_PM_"+(seri.value||"alat")+".png";a.target="_blank";document.body.appendChild(a);a.click();a.remove();
+}
+function showScan(obj){
+ document.querySelector('.app').style.display='none';
+ document.getElementById('scanView').classList.add('active');
+ let rows=obj.pm||[];
+ document.getElementById('scanContent').innerHTML=`
+ <table class="scan-info"><tr><td>Nama Alat</td><td>${esc(obj.nama)}</td></tr><tr><td>Merk</td><td>${esc(obj.merk)}</td></tr><tr><td>Type</td><td>${esc(obj.type)}</td></tr><tr><td>No. Seri</td><td>${esc(obj.seri)}</td></tr><tr><td>Masa Berlaku Kalibrasi</td><td>${esc(obj.kalibrasi||'')}</td></tr><tr><td>Lokasi Alat</td><td>${esc(obj.lokasi||'')}</td></tr><tr><td>Teknisi</td><td>${esc(obj.teknisi||'')}</td></tr></table>
+ <table class="scan-pm"><thead><tr><th>Hari/Tanggal</th><th>Kegiatan PM</th><th>Hasil / Kondisi</th><th>Elektromedis</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td></tr>`).join('')}</tbody></table>`;
+}
+function printScanPDF(){window.print()}
+function backToForm(){location.hash='';location.reload()}
+function checkScan(){
+ let h=location.hash; if(!h.startsWith('#pm=')) return;
+ try{showScan(decodeQR(h.slice(4)))}catch(e){alert('QR tidak valid atau data rusak.');}
+}
+function saveData(){localStorage.setItem("PM_MEDIS",JSON.stringify(data()));alert("Data PM tersimpan.");}
+document.addEventListener("input",updateStats);
+document.addEventListener("change",updateStats);
+render(sample);
+checkScan();
+</script>
+</body>
+</html>
